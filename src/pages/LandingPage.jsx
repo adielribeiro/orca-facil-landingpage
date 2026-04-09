@@ -81,7 +81,7 @@ const nichos = [
 
 const plano = {
   nome: "Plano Profissional",
-  preco: "R$ 119,90/mês",
+  preco: "R$ 119,90 Vitalício",
   descricao:
     "Tudo o que você precisa para criar, salvar e enviar orçamentos com mais rapidez e profissionalismo.",
   itens: [
