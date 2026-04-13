@@ -7,7 +7,10 @@ import {
   CardContent,
   CircularProgress,
   Container,
+  FormControlLabel,
+  MenuItem,
   Stack,
+  Switch,
   TextField,
   Typography
 } from '@mui/material';
@@ -16,6 +19,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import LogoutIcon from '@mui/icons-material/Logout';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import LoginIcon from '@mui/icons-material/Login';
+import PixIcon from '@mui/icons-material/Pix';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   buildWhatsAppLink,
@@ -26,6 +30,36 @@ import {
   sanitizeWhatsappNumber
 } from '../utils/landingConfig';
 import { fetchPublicLandingConfig, loginAdmin, saveLandingConfigApi } from '../services/landingApi';
+
+const pixKeyTypeOptions = [
+  { value: 'email', label: 'E-mail' },
+  { value: 'cpf', label: 'CPF' },
+  { value: 'cnpj', label: 'CNPJ' },
+  { value: 'telefone', label: 'Telefone' },
+  { value: 'aleatoria', label: 'Chave aleatória' }
+];
+
+function SectionCard({ title, subtitle, children }) {
+  return (
+    <Card sx={{ borderRadius: 4 }}>
+      <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+        <Stack spacing={3}>
+          <Box>
+            <Typography variant="h6" fontWeight={700}>
+              {title}
+            </Typography>
+            {subtitle ? (
+              <Typography color="text.secondary" sx={{ mt: 1 }}>
+                {subtitle}
+              </Typography>
+            ) : null}
+          </Box>
+          {children}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function ConfigPage() {
   const [form, setForm] = useState(null);
@@ -174,70 +208,47 @@ export default function ConfigPage() {
                 Painel de configuração da landing
               </Typography>
               <Typography color="text.secondary" sx={{ mt: 1 }}>
-                Aqui você altera os dados públicos e salva direto no banco pela API.
+                Aqui você altera a landing, o checkout PIX e os dados públicos salvos no banco.
               </Typography>
             </Box>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <Button
-                component={RouterLink}
-                to="/"
-                variant="outlined"
-                startIcon={<ArrowBackIcon />}
-              >
+              <Button component={RouterLink} to="/" variant="outlined" startIcon={<ArrowBackIcon />}>
                 Voltar para a landing
               </Button>
 
-              <Button
-                component="a"
-                href={whatsappPreview}
-                target="_blank"
-                rel="noreferrer"
-                variant="contained"
-                startIcon={<OpenInNewIcon />}
-              >
+              <Button component="a" href={whatsappPreview} target="_blank" rel="noreferrer" variant="contained" startIcon={<OpenInNewIcon />}>
                 Testar WhatsApp
               </Button>
             </Stack>
           </Stack>
 
           {!token ? (
-            <Card sx={{ borderRadius: 4 }}>
-              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                <Box component="form" onSubmit={handleLogin}>
-                  <Stack spacing={3}>
-                    <Typography variant="h6" fontWeight={700}>
-                      Login de administrador
-                    </Typography>
+            <SectionCard title="Login de administrador" subtitle="Faça login para salvar as configurações da landing e do checkout.">
+              <Box component="form" onSubmit={handleLogin}>
+                <Stack spacing={3}>
+                  <TextField
+                    label="E-mail"
+                    type="email"
+                    value={loginForm.email}
+                    onChange={(event) => updateLoginField('email', event.target.value)}
+                    fullWidth
+                  />
 
-                    <TextField
-                      label="E-mail"
-                      type="email"
-                      value={loginForm.email}
-                      onChange={(event) => updateLoginField('email', event.target.value)}
-                      fullWidth
-                    />
+                  <TextField
+                    label="Senha"
+                    type="password"
+                    value={loginForm.password}
+                    onChange={(event) => updateLoginField('password', event.target.value)}
+                    fullWidth
+                  />
 
-                    <TextField
-                      label="Senha"
-                      type="password"
-                      value={loginForm.password}
-                      onChange={(event) => updateLoginField('password', event.target.value)}
-                      fullWidth
-                    />
-
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      startIcon={<LoginIcon />}
-                      disabled={loginLoading}
-                    >
-                      {loginLoading ? 'Entrando...' : 'Entrar como admin'}
-                    </Button>
-                  </Stack>
-                </Box>
-              </CardContent>
-            </Card>
+                  <Button type="submit" variant="contained" startIcon={<LoginIcon />} disabled={loginLoading}>
+                    {loginLoading ? 'Entrando...' : 'Entrar como admin'}
+                  </Button>
+                </Stack>
+              </Box>
+            </SectionCard>
           ) : (
             <Alert
               severity="success"
@@ -254,91 +265,61 @@ export default function ConfigPage() {
           {savedMessage ? <Alert severity="success">{savedMessage}</Alert> : null}
           {errorMessage ? <Alert severity="error">{errorMessage}</Alert> : null}
 
-          <Card sx={{ borderRadius: 4 }}>
-            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-              <Box component="form" onSubmit={handleSave}>
+          <Box component="form" onSubmit={handleSave}>
+            <Stack spacing={3}>
+              <SectionCard title="Informações principais" subtitle="Esses dados aparecem publicamente na landing.">
                 <Stack spacing={3}>
-                  <Typography variant="h6" fontWeight={700}>
-                    Informações principais
-                  </Typography>
-
-                  <TextField
-                    label="Nome da marca"
-                    value={form.brandName}
-                    onChange={(event) => updateField('brandName', event.target.value)}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Link do app"
-                    value={form.appLink}
-                    onChange={(event) => updateField('appLink', event.target.value)}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Número do WhatsApp"
-                    helperText="Use somente números, com DDI e DDD. Ex.: 5517999999999"
-                    value={form.whatsappNumber}
-                    onChange={(event) => updateField('whatsappNumber', event.target.value)}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Mensagem padrão do WhatsApp"
-                    value={form.whatsappMessage}
-                    onChange={(event) => updateField('whatsappMessage', event.target.value)}
-                    fullWidth
-                    multiline
-                    minRows={3}
-                  />
-
-                  <Typography variant="h6" fontWeight={700}>
-                    Plano exibido na página
-                  </Typography>
-
-                  <TextField
-                    label="Chip da seção de preço"
-                    value={form.pricingChip}
-                    onChange={(event) => updateField('pricingChip', event.target.value)}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Nome do plano"
-                    value={form.planName}
-                    onChange={(event) => updateField('planName', event.target.value)}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Preço do plano"
-                    value={form.planPrice}
-                    onChange={(event) => updateField('planPrice', event.target.value)}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Descrição do plano"
-                    value={form.planDescription}
-                    onChange={(event) => updateField('planDescription', event.target.value)}
-                    fullWidth
-                    multiline
-                    minRows={4}
-                  />
-
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    disabled={saving || !token}
-                  >
-                    {saving ? 'Salvando...' : 'Salvar no banco'}
-                  </Button>
+                  <TextField label="Nome da marca" value={form.brandName} onChange={(event) => updateField('brandName', event.target.value)} fullWidth />
+                  <TextField label="Link do app" value={form.appLink} onChange={(event) => updateField('appLink', event.target.value)} fullWidth />
+                  <TextField label="Número do WhatsApp" value={form.whatsappNumber} onChange={(event) => updateField('whatsappNumber', event.target.value)} fullWidth />
+                  <TextField label="Mensagem padrão do WhatsApp" value={form.whatsappMessage} onChange={(event) => updateField('whatsappMessage', event.target.value)} multiline minRows={3} fullWidth />
                 </Stack>
-              </Box>
-            </CardContent>
-          </Card>
+              </SectionCard>
+
+              <SectionCard title="Plano exibido na landing" subtitle="Essas informações ficam na seção de preço e também ajudam no checkout.">
+                <Stack spacing={3}>
+                  <TextField label="Chip de preço" value={form.pricingChip} onChange={(event) => updateField('pricingChip', event.target.value)} fullWidth />
+                  <TextField label="Nome do plano" value={form.planName} onChange={(event) => updateField('planName', event.target.value)} fullWidth />
+                  <TextField label="Preço exibido" value={form.planPrice} onChange={(event) => updateField('planPrice', event.target.value)} fullWidth />
+                  <TextField label="Descrição do plano" value={form.planDescription} onChange={(event) => updateField('planDescription', event.target.value)} multiline minRows={4} fullWidth />
+                </Stack>
+              </SectionCard>
+
+              <SectionCard title="Checkout PIX" subtitle="Configure a página que gera o QR Code, o PIX copia e cola e recebe o comprovante.">
+                <Stack spacing={3}>
+                  <FormControlLabel
+                    control={<Switch checked={form.checkoutEnabled} onChange={(event) => updateField('checkoutEnabled', event.target.checked)} />}
+                    label="Checkout ativo"
+                  />
+
+                  <TextField label="Título do checkout" value={form.checkoutHeadline} onChange={(event) => updateField('checkoutHeadline', event.target.value)} fullWidth />
+                  <TextField label="Descrição do checkout" value={form.checkoutDescription} onChange={(event) => updateField('checkoutDescription', event.target.value)} multiline minRows={3} fullWidth />
+                  <TextField label="Texto do botão de compra" value={form.checkoutButtonLabel} onChange={(event) => updateField('checkoutButtonLabel', event.target.value)} fullWidth />
+                  <TextField label="Valor real do plano para o PIX" value={form.planAmount} onChange={(event) => updateField('planAmount', event.target.value)} helperText="Exemplo: 119,90" fullWidth />
+                  <TextField select label="Tipo da chave PIX" value={form.pixKeyType} onChange={(event) => updateField('pixKeyType', event.target.value)} fullWidth>
+                    {pixKeyTypeOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField label="Chave PIX" value={form.pixKey} onChange={(event) => updateField('pixKey', event.target.value)} fullWidth />
+                  <TextField label="Nome do favorecido" value={form.pixBeneficiaryName} onChange={(event) => updateField('pixBeneficiaryName', event.target.value)} fullWidth />
+                  <TextField label="Cidade do PIX" value={form.pixCity} onChange={(event) => updateField('pixCity', event.target.value)} helperText="Use sem acentos para evitar falha no BR Code." fullWidth />
+                  <TextField label="Descrição no PIX" value={form.pixDescription} onChange={(event) => updateField('pixDescription', event.target.value)} fullWidth />
+                  <TextField label="E-mail de suporte" value={form.supportEmail} onChange={(event) => updateField('supportEmail', event.target.value)} fullWidth />
+                </Stack>
+              </SectionCard>
+
+              <Alert severity="info" icon={<PixIcon />}>
+                Depois de salvar, a landing passa a ter botão para o checkout, e a página de checkout gera o PIX com base nessas configurações.
+              </Alert>
+
+              <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} disabled={saving}>
+                {saving ? 'Salvando...' : 'Salvar configurações'}
+              </Button>
+            </Stack>
+          </Box>
         </Stack>
       </Container>
     </Box>

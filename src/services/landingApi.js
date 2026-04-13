@@ -36,6 +36,35 @@ export async function fetchPublicLandingConfig() {
   }
 }
 
+export async function fetchCheckoutConfig() {
+  const response = await fetch(buildUrl('/checkout/config'));
+  return parseResponse(response, 'Não foi possível carregar o checkout.');
+}
+
+export async function createPurchaseIntent(payload) {
+  const response = await fetch(buildUrl('/checkout/intents'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  return parseResponse(response, 'Não foi possível iniciar a compra.');
+}
+
+export async function submitPurchaseReceipt(intentId, payload) {
+  const response = await fetch(buildUrl(`/checkout/intents/${intentId}/receipt`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  return parseResponse(response, 'Não foi possível enviar o comprovante.');
+}
+
 export async function loginAdmin(email, password) {
   const response = await fetch(buildUrl('/auth/login'), {
     method: 'POST',

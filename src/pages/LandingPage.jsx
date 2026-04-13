@@ -28,6 +28,8 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import LoginIcon from '@mui/icons-material/Login';
+import PixIcon from '@mui/icons-material/Pix';
+import { Link as RouterLink } from 'react-router-dom';
 import { buildWhatsAppLink, defaultLandingConfig } from '../utils/landingConfig';
 import { fetchPublicLandingConfig } from '../services/landingApi';
 import logoHorizontal from '../assets/orcafeito/logo_horizontal_fundo_claro.png';
@@ -204,12 +206,11 @@ export default function LandingPage() {
 
             <Button
               variant="contained"
-              href={whatsappLink}
-              target="_blank"
-              rel="noreferrer"
-              startIcon={<WhatsAppIcon />}
+              component={RouterLink}
+              to="/checkout"
+              startIcon={<PixIcon />}
             >
-              Falar no WhatsApp
+              {config.checkoutButtonLabel || 'Assinar agora via PIX'}
             </Button>
           </Stack>
         </Toolbar>
@@ -282,12 +283,12 @@ export default function LandingPage() {
             </Typography>
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Button size="large" variant="contained" href={whatsappLink} target="_blank" rel="noreferrer">
-                Quero conhecer
+              <Button size="large" variant="contained" component={RouterLink} to="/checkout" startIcon={<PixIcon />}>
+                {config.checkoutButtonLabel || 'Assinar agora via PIX'}
               </Button>
 
-              <Button size="large" variant="outlined" href={config.appLink} startIcon={<LoginIcon />}>
-                Entrar no sistema
+              <Button size="large" variant="outlined" href={whatsappLink} target="_blank" rel="noreferrer" startIcon={<WhatsAppIcon />}>
+                Falar no WhatsApp
               </Button>
             </Stack>
 
@@ -529,16 +530,15 @@ export default function LandingPage() {
                 <Button
                   size="large"
                   variant="contained"
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  startIcon={<WhatsAppIcon />}
+                  component={RouterLink}
+                  to="/checkout"
+                  startIcon={<PixIcon />}
                 >
-                  Quero assinar
+                  {config.checkoutButtonLabel || 'Assinar agora via PIX'}
                 </Button>
 
-                <Button size="large" variant="outlined" href={config.appLink} startIcon={<LoginIcon />}>
-                  Entrar no sistema
+                <Button size="large" variant="outlined" href={whatsappLink} target="_blank" rel="noreferrer" startIcon={<WhatsAppIcon />}>
+                  Tirar dúvidas no WhatsApp
                 </Button>
               </Stack>
             </Stack>
@@ -570,12 +570,12 @@ export default function LandingPage() {
                 </Typography>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pt: 1 }}>
-                  <Button size="large" variant="contained" href={whatsappLink} target="_blank" rel="noreferrer">
-                    Quero falar no WhatsApp
+                  <Button size="large" variant="contained" component={RouterLink} to="/checkout" startIcon={<PixIcon />}>
+                    Gerar meu PIX
                   </Button>
 
-                  <Button size="large" variant="outlined" href={config.appLink} startIcon={<LoginIcon />}>
-                    Entrar no sistema
+                  <Button size="large" variant="outlined" href={whatsappLink} target="_blank" rel="noreferrer" startIcon={<WhatsAppIcon />}>
+                    Quero falar no WhatsApp
                   </Button>
                 </Stack>
               </Stack>

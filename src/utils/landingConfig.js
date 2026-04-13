@@ -20,7 +20,15 @@ export function normalizeLandingConfig(config) {
     ...source,
     whatsappNumber: sanitizeWhatsappNumber(
       source.whatsappNumber || defaultLandingConfig.whatsappNumber
-    )
+    ),
+    checkoutEnabled:
+      typeof source.checkoutEnabled === 'boolean'
+        ? source.checkoutEnabled
+        : defaultLandingConfig.checkoutEnabled,
+    pixKeyType: String(source.pixKeyType || defaultLandingConfig.pixKeyType),
+    pixKey: String(source.pixKey || defaultLandingConfig.pixKey),
+    planAmount: String(source.planAmount || defaultLandingConfig.planAmount),
+    supportEmail: String(source.supportEmail || defaultLandingConfig.supportEmail)
   };
 }
 
