@@ -19,13 +19,15 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PixIcon from '@mui/icons-material/Pix';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MailOutlineIcon from '@mui/icons-material/MailOutlined';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Link as RouterLink } from 'react-router-dom';
 import logoHorizontal from '../assets/orcafeito/logo_horizontal_fundo_claro.png';
 import {
   createPurchaseIntent,
-  fetchCheckoutConfig,
+  fetchPublicLandingConfig,
   submitPurchaseReceipt
 } from '../services/landingApi';
+import { buildWhatsAppLink } from '../utils/landingConfig';
 
 function formatFileSize(bytes = 0) {
   if (bytes < 1024) {
@@ -80,7 +82,8 @@ export default function CheckoutPage() {
       setErrorMessage('');
 
       try {
-        const data = await fetchCheckoutConfig();
+        const data = await fetchPublicLandingConfig();
+
         if (mounted) {
           setConfig(data);
         }
@@ -109,6 +112,22 @@ export default function CheckoutPage() {
 
     return `Seu acesso será criado no e-mail ${purchase.email}.`;
   }, [purchase]);
+
+  const whatsappReceiptLink = useMemo(() => {
+    if (!config?.whatsappNumber || !purchase?.protocol) {
+      return '';
+    }
+
+    const message =
+      `Olá! Segue meu comprovante de pagamento do Orça Feito.%0A%0A` +
+      `Protocolo: ${purchase.protocol}%0A` +
+      `E-mail da compra: ${purchase.email}%0A` +
+      `Plano: ${purchase.planName}%0A` +
+      `Valor: ${purchase.planPrice}%0A%0A` +
+      `Vou anexar o comprovante nesta conversa.`;
+
+    return buildWhatsAppLink(config.whatsappNumber, decodeURIComponent(message));
+  }, [config, purchase]);
 
   function updateField(field, value) {
     setPurchaseError('');
@@ -149,6 +168,15 @@ export default function CheckoutPage() {
     } catch {
       setReceiptError('Não foi possível copiar automaticamente. Selecione e copie o código manualmente.');
     }
+  }
+
+  function handleOpenWhatsApp() {
+    if (!whatsappReceiptLink) {
+      setReceiptError('O número de WhatsApp ainda não foi configurado.');
+      return;
+    }
+
+    window.open(whatsappReceiptLink, '_blank', 'noopener,noreferrer');
   }
 
   async function handleUploadReceipt() {
@@ -203,7 +231,13 @@ export default function CheckoutPage() {
       <Box sx={{ minHeight: '100vh', background: '#f8fafc', py: 6 }}>
         <Container maxWidth="md">
           <Stack spacing={3}>
-            <Button component={RouterLink} to="/" variant="outlined" startIcon={<ArrowBackIcon />} sx={{ alignSelf: 'flex-start' }}>
+            <Button
+              component={RouterLink}
+              to="/"
+              variant="outlined"
+              startIcon={<ArrowBackIcon />}
+              sx={{ alignSelf: 'flex-start' }}
+            >
               Voltar para a landing
             </Button>
             <Alert severity="error">{errorMessage}</Alert>
@@ -218,7 +252,13 @@ export default function CheckoutPage() {
       <Box sx={{ minHeight: '100vh', background: '#f8fafc', py: 6 }}>
         <Container maxWidth="md">
           <Stack spacing={3}>
-            <Button component={RouterLink} to="/" variant="outlined" startIcon={<ArrowBackIcon />} sx={{ alignSelf: 'flex-start' }}>
+            <Button
+              component={RouterLink}
+              to="/"
+              variant="outlined"
+              startIcon={<ArrowBackIcon />}
+              sx={{ alignSelf: 'flex-start' }}
+            >
               Voltar para a landing
             </Button>
             <Alert severity="warning">O checkout está temporariamente desativado.</Alert>
@@ -239,7 +279,12 @@ export default function CheckoutPage() {
             spacing={2}
           >
             <Stack spacing={1}>
-              <Box component="img" src={logoHorizontal} alt="Orça Feito" sx={{ width: { xs: 210, sm: 250 }, maxWidth: '100%' }} />
+              <Box
+                component="img"
+                src={logoHorizontal}
+                alt="Orça Feito"
+                sx={{ width: { xs: 210, sm: 250 }, maxWidth: '100%' }}
+              />
               <Typography variant="h4" fontWeight={900}>
                 {config.checkoutHeadline}
               </Typography>
@@ -269,7 +314,7 @@ export default function CheckoutPage() {
                       Informe seus dados para liberar o acesso
                     </Typography>
                     <Typography color="text.secondary">
-                      O e-mail informado aqui será usado para criar seu usuário depois da conferência do comprovante.
+                      O e-mail informado aqui será usado para criar seu usuário depois da conferência do pagamento.
                     </Typography>
                   </Stack>
 
@@ -301,7 +346,13 @@ export default function CheckoutPage() {
                         fullWidth
                       />
 
-                      <Button type="submit" variant="contained" size="large" startIcon={<PixIcon />} disabled={creating}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        startIcon={<PixIcon />}
+                        disabled={creating}
+                      >
                         {creating ? 'Gerando PIX...' : config.checkoutButtonLabel || 'Gerar PIX'}
                       </Button>
                     </Stack>
@@ -322,7 +373,7 @@ export default function CheckoutPage() {
                       {config.planPrice}
                     </Typography>
                     <Typography color="text.secondary">
-                      Sem intermediador pago agora no começo: o checkout gera o PIX e você envia o comprovante aqui mesmo.
+                      Checkout simples para o começo: você gera o PIX, paga e nos envia o comprovante.
                     </Typography>
                   </Stack>
 
@@ -335,15 +386,15 @@ export default function CheckoutPage() {
                     </Stack>
                     <Stack direction="row" spacing={1.5} alignItems="center">
                       <CheckCircleIcon color="success" />
-                      <Typography>QR Code para pagamento no celular</Typography>
+                      <Typography>QR Code para pagamento</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1.5} alignItems="center">
                       <CheckCircleIcon color="success" />
-                      <Typography>Liberação manual após conferência do comprovante</Typography>
+                      <Typography>Envio do comprovante por WhatsApp</Typography>
                     </Stack>
                     <Stack direction="row" spacing={1.5} alignItems="center">
                       <CheckCircleIcon color="success" />
-                      <Typography>Acesso enviado por e-mail depois da aprovação</Typography>
+                      <Typography>Acesso enviado por e-mail após aprovação</Typography>
                     </Stack>
                   </Stack>
                 </Stack>
@@ -373,11 +424,32 @@ export default function CheckoutPage() {
                     </Stack>
 
                     <Box
-                      component="img"
-                      src={purchase.pixQrCodeUrl}
-                      alt="QR Code PIX"
-                      sx={{ width: 280, maxWidth: '100%', alignSelf: 'center', borderRadius: 3, border: '1px solid #e5e7eb' }}
-                    />
+                      sx={{
+                        width: { xs: 290, sm: 340 },
+                        maxWidth: '100%',
+                        alignSelf: 'center',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 2,
+                        p: 1.5
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={purchase.pixQrCodeUrl}
+                        alt="QR Code PIX"
+                        sx={{
+                          display: 'block',
+                          width: '100%',
+                          maxWidth: 320,
+                          margin: '0 auto',
+                          aspectRatio: '1 / 1',
+                          borderRadius: 0,
+                          backgroundColor: '#ffffff',
+                          imageRendering: 'pixelated'
+                        }}
+                      />
+                    </Box>
 
                     <TextField
                       label="PIX copia e cola"
@@ -411,7 +483,25 @@ export default function CheckoutPage() {
                     {receiptError ? <Alert severity="error">{receiptError}</Alert> : null}
                     {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
 
+                    <Alert severity="info">
+                      Recomendado: envie o comprovante pelo WhatsApp. É mais simples para o cliente e melhor para você no início.
+                    </Alert>
+
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="large"
+                      startIcon={<OpenInNewIcon />}
+                      onClick={handleOpenWhatsApp}
+                    >
+                      Enviar comprovante pelo WhatsApp
+                    </Button>
+
+                    <Divider />
+
                     <Stack spacing={1.5}>
+                      <Typography fontWeight={700}>Opção alternativa: enviar arquivo por aqui</Typography>
+
                       <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />}>
                         Selecionar comprovante
                         <input
@@ -428,26 +518,31 @@ export default function CheckoutPage() {
                         </Alert>
                       ) : null}
 
-                      <Button variant="contained" size="large" onClick={handleUploadReceipt} disabled={uploading}>
-                        {uploading ? 'Enviando comprovante...' : 'Enviar comprovante'}
+                      <Button
+                        variant="outlined"
+                        size="large"
+                        onClick={handleUploadReceipt}
+                        disabled={uploading}
+                      >
+                        {uploading ? 'Enviando comprovante...' : 'Enviar comprovante por arquivo'}
                       </Button>
                     </Stack>
 
                     <Divider />
 
                     <Stack spacing={1}>
-                      <Typography fontWeight={700}>O que acontece depois?</Typography>
+                      <Typography fontWeight={700}>Como funciona agora?</Typography>
                       <Typography color="text.secondary">
-                        1. Você paga pelo PIX.
+                        1. Você gera o PIX.
                       </Typography>
                       <Typography color="text.secondary">
-                        2. Envia o comprovante aqui pela página.
+                        2. Faz o pagamento.
                       </Typography>
                       <Typography color="text.secondary">
-                        3. Após a conferência, seu usuário é criado no banco do app.
+                        3. Envia o comprovante pelo WhatsApp ou por arquivo.
                       </Typography>
                       <Typography color="text.secondary">
-                        4. Você recebe e-mail, senha inicial e o link do sistema.
+                        4. Após a conferência, o acesso é criado e enviado por e-mail.
                       </Typography>
                     </Stack>
 
